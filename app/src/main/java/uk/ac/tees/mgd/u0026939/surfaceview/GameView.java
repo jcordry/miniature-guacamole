@@ -32,6 +32,9 @@ public class GameView extends SurfaceView implements Runnable {
     private Rect frameToDraw = new Rect(0,0,frameW,frameH);
     private RectF whereToDraw = new RectF(xPos, yPos, xPos + frameW, frameH);
 
+    private boolean readyToUpdate = false;
+
+
     public GameView(Context context) {
         super(context);
         surfaceHolder = getHolder();
@@ -56,17 +59,16 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
     private void update() {
-        if(isMoving)
-        {
-            xPos = xPos + velocity / fps;
-            if (xPos > getWidth())
-            {
-                yPos += frameH;
-                xPos = 10;
-            }
-            if (yPos + frameH > getHeight())
-            {
-                yPos = 10;
+        if (readyToUpdate) {
+            if (isMoving) {
+                xPos = xPos + velocity / fps;
+                if (xPos > getWidth()) {
+                    yPos += frameH;
+                    xPos = 10;
+                }
+                if (yPos + frameH > getHeight()) {
+                    yPos = 10;
+                }
             }
         }
     }
@@ -94,6 +96,7 @@ public class GameView extends SurfaceView implements Runnable {
     public void draw() {
         if (surfaceHolder.getSurface().isValid())
         {
+            readyToUpdate = true;
             canvas = surfaceHolder.lockCanvas();
             canvas.drawColor(Color.WHITE);
             whereToDraw.set(xPos, yPos, xPos+frameW, yPos + frameH);
@@ -123,10 +126,20 @@ public class GameView extends SurfaceView implements Runnable {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
-            case MotionEvent.ACTION_DOWN :
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN:
                 isMoving = !isMoving;
                 break;
+            case MotionEvent.ACTION_MOVE:
+                Log.d("GameView","Action was MOVE: " + event.getX() + " " + event.getY());
+                break;
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP:
+                Log.d("GameView","Action was UP");
+                break;
         }
+        event.getX();
         return true;
     }
 }
